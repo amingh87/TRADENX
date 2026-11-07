@@ -1,0 +1,13 @@
+*.iml
+.gradle/
+build/
+local.properties
+.idea/
+*.apk
+.cxx
+# Rust
+rust/target/
+app/src/main/jniLibs/
+# Flutter / Dart
+flutter_fx/.dart_tool/
+flutter_fx/build/
