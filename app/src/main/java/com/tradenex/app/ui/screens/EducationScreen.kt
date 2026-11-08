@@ -124,7 +124,7 @@ fun EducationScreen(nav: NavController) {
     creating?.let { kind ->
         AlertDialog(
             onDismissRequest = { creating = null },
-            containerColor = Color(0xFF14141A),
+            containerColor = Tx.Surface,
             title = { Text(kind.label, color = Tx.Text) },
             text = { TxField(title, { title = it }, "عنوان درس") },
             confirmButton = {
@@ -141,7 +141,7 @@ fun EducationScreen(nav: NavController) {
     if (qrInfo) {
         AlertDialog(
             onDismissRequest = { qrInfo = false },
-            containerColor = Color(0xFF14141A),
+            containerColor = Tx.Surface,
             title = { Text("اشتراک با QR", color = Tx.Text) },
             text = { Text("ساخت و اسکن QR برای ارسال درس به دوستان در نسخه بعدی اضافه می‌شود.", color = Tx.Muted) },
             confirmButton = { TextButton(onClick = { qrInfo = false }) { Text("باشه", color = Tx.Gold) } },

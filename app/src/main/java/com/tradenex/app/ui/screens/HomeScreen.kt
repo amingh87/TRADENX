@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,6 +60,7 @@ import com.tradenex.app.data.Period
 import com.tradenex.app.ui.components.CandleChart
 import com.tradenex.app.ui.components.GlassCard
 import com.tradenex.app.ui.components.PulseDot
+import com.tradenex.app.ui.components.SpinningGlobe
 import com.tradenex.app.ui.components.SessionTimeline
 import com.tradenex.app.ui.components.StatTile
 import com.tradenex.app.ui.components.TxChip
@@ -99,7 +101,7 @@ fun HomeScreen(nav: NavController) {
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 2.sp,
                     style = androidx.compose.ui.text.TextStyle(
-                        brush = Brush.verticalGradient(listOf(Tx.GoldPale, Color(0xFFE7A92B))),
+                        brush = Brush.verticalGradient(listOf(Tx.GoldPale, Tx.GoldDeep)),
                     ),
                 )
                 Text("Trade · Journal · Analyze · Improve", color = Tx.Muted, fontSize = 9.sp)
@@ -113,24 +115,32 @@ fun HomeScreen(nav: NavController) {
         ) {
             Reveal(0) {
                 GlassCard(Modifier.fillMaxWidth().height(140.dp)) {
-                    Canvas(Modifier.fillMaxSize()) {
-                        // glowing orbits on the leading edge of the hero card
-                        val c = Offset(size.width * 0.16f, size.height * 0.5f)
-                        for (i in 0..2) {
+                    // Orb on the physical left (RTL end); text on the right (RTL start), so they never overlap.
+                    if (Tx.Luxe) {
+                        val mask = sessions.foldIndexed(0) { i, m, st -> if (st.open) m or (1 shl i) else m }
+                        Box(Modifier.align(Alignment.CenterEnd).size(150.dp).offset(x = 14.dp)) {
+                            SpinningGlobe(mask, utc, Modifier.fillMaxSize(), settings.animations)
+                        }
+                    } else {
+                        Canvas(Modifier.fillMaxSize()) {
+                            // glowing orbits on the leading edge of the hero card
+                            val c = Offset(size.width * 0.16f, size.height * 0.5f)
+                            for (i in 0..2) {
+                                drawCircle(
+                                    Tx.Gold.copy(alpha = 0.25f - i * 0.06f),
+                                    radius = 30.dp.toPx() + i * 16.dp.toPx(),
+                                    center = c,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(1.2.dp.toPx()),
+                                )
+                            }
                             drawCircle(
-                                Tx.Gold.copy(alpha = 0.25f - i * 0.06f),
-                                radius = 30.dp.toPx() + i * 16.dp.toPx(),
+                                Brush.radialGradient(listOf(Tx.Gold, Tx.GoldDeep, Tx.Ink), center = c, radius = 30.dp.toPx()),
+                                radius = 26.dp.toPx(),
                                 center = c,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(1.2.dp.toPx()),
                             )
                         }
-                        drawCircle(
-                            Brush.radialGradient(listOf(Tx.Gold, Color(0xFF8A5A12), Color(0xFF1A1204)), center = c, radius = 30.dp.toPx()),
-                            radius = 26.dp.toPx(),
-                            center = c,
-                        )
                     }
-                    Column(Modifier.align(Alignment.CenterEnd).padding(end = 16.dp), horizontalAlignment = Alignment.End) {
+                    Column(Modifier.align(Alignment.CenterStart).padding(start = 16.dp), horizontalAlignment = Alignment.Start) {
                         Text("عملکرد ۳۰ روز اخیر", color = Tx.Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         val col = if (monthPct >= 0) Tx.Green else Tx.Red
                         val shown = if (settings.hideBalance) "•••" else String.format(java.util.Locale.US, "%+.2f%%", shownPct)
@@ -213,7 +223,7 @@ fun HomeScreen(nav: NavController) {
                             Box(
                                 Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Brush.verticalGradient(listOf(Color(0xFFFFD978), Tx.GoldDeep)))
+                                    .background(Brush.verticalGradient(listOf(Tx.GoldHi, Tx.GoldDeep)))
                                     .clickable { nav.navigate("add") }
                                     .padding(horizontal = 16.dp, vertical = 8.dp),
                             ) { Text("ثبت", color = Tx.Ink, fontWeight = FontWeight.Bold, fontSize = 12.sp) }

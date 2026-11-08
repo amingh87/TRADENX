@@ -41,8 +41,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -51,7 +53,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tradenex.app.data.AppState
 import com.tradenex.app.ui.theme.Tx
+import kotlin.math.PI
+import kotlin.math.sin
 
 /** Animated aurora background shared by every screen. */
 @Composable
@@ -87,23 +92,91 @@ fun TxBackground(content: @Composable BoxScope.() -> Unit) {
                 ),
             )
         }
+        if (AppState.settings.particles && AppState.settings.animations > 0) {
+            val tick by t.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(tween(24000, easing = LinearEasing)),
+                label = "tick",
+            )
+            Canvas(Modifier.fillMaxSize()) { drawParticles(tick, if (AppState.settings.animations > 1) 46 else 26) }
+        }
         content()
     }
+}
+
+/** Slow rising gold dust. Positions are a pure function of the index, so there is no state to keep. */
+private fun DrawScope.drawParticles(tick: Float, count: Int) {
+    for (i in 0 until count) {
+        val seed = (i * 7919 % 1000) / 1000f
+        val seed2 = (i * 104729 % 997) / 997f
+        val speed = 0.6f + seed2 * 0.9f
+        val phase = (tick * speed + seed) % 1f
+        val x = size.width * seed2 + sin((phase * 2f * PI + i).toFloat()) * 14f
+        val y = size.height * (1.05f - phase * 1.1f)
+        val fade = sin(phase * PI).toFloat().coerceIn(0f, 1f)
+        val rad = (0.8f + seed * 1.8f) * density
+        drawCircle(Tx.GoldHi.copy(alpha = 0.55f * fade), rad, Offset(x, y))
+        drawCircle(Tx.Gold.copy(alpha = 0.14f * fade), rad * 3.2f, Offset(x, y))
+    }
+}
+
+/** Corner radius chosen in Settings (0 sharp, 1 normal, 2 round). */
+fun cardRadius(): androidx.compose.ui.unit.Dp = when (AppState.settings.cardRadius) {
+    0 -> 10.dp
+    2 -> 26.dp
+    else -> 18.dp
 }
 
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    border: Color = Tx.Gold.copy(alpha = 0.38f),
+    border: Color = Tx.Gold.copy(alpha = if (Tx.Luxe) 0.5f else 0.38f),
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(cardRadius())
+    val luxe = Tx.Luxe
+    val sweepOn = luxe && AppState.settings.shimmer && AppState.settings.animations > 0
+    val sweep = if (sweepOn) {
+        val t = rememberInfiniteTransition(label = "sweep")
+        val v by t.animateFloat(
+            initialValue = -0.4f,
+            targetValue = 1.4f,
+            animationSpec = infiniteRepeatable(tween(5200, easing = LinearEasing)),
+            label = "v",
+        )
+        v
+    } else {
+        -1f
+    }
+    val fill = if (luxe) {
+        Brush.linearGradient(listOf(Tx.CardA, Tx.CardB))
+    } else {
+        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.09f), Color.White.copy(alpha = 0.02f)))
+    }
     Box(
         modifier
-            .shadow(10.dp, shape, ambientColor = Tx.Gold.copy(alpha = 0.25f), spotColor = Tx.Gold.copy(alpha = 0.25f))
+            .shadow(
+                if (luxe) 14.dp else 10.dp, shape,
+                ambientColor = Tx.Gold.copy(alpha = if (luxe) 0.35f else 0.25f),
+                spotColor = Tx.Gold.copy(alpha = if (luxe) 0.35f else 0.25f),
+            )
             .clip(shape)
-            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.09f), Color.White.copy(alpha = 0.02f))))
-            .border(1.dp, border, shape),
+            .background(fill)
+            .border(1.dp, border, shape)
+            .drawWithContent {
+                drawContent()
+                if (sweep > -0.9f) {
+                    val x = size.width * sweep
+                    drawRect(
+                        Brush.linearGradient(
+                            listOf(Color.Transparent, Tx.GoldPale.copy(alpha = 0.10f), Color.Transparent),
+                            start = Offset(x - size.width * 0.25f, 0f),
+                            end = Offset(x + size.width * 0.25f, size.height),
+                        ),
+                    )
+                }
+            },
         content = content,
     )
 }
@@ -164,14 +237,14 @@ fun GoldButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit)
         animationSpec = infiniteRepeatable(tween(1600), RepeatMode.Reverse),
         label = "glow",
     )
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(cardRadius())
     Box(
         modifier
             .fillMaxWidth()
             .height(54.dp)
             .shadow(14.dp, shape, ambientColor = Tx.Gold.copy(alpha = glow), spotColor = Tx.Gold.copy(alpha = glow))
             .clip(shape)
-            .background(Brush.verticalGradient(listOf(Color(0xFFFFD978), Tx.GoldDeep)))
+            .background(Brush.verticalGradient(listOf(Tx.GoldHi, Tx.GoldDeep)))
             .border(1.dp, Tx.GoldPale, shape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -216,7 +289,7 @@ fun PulseDot(color: Color, modifier: Modifier = Modifier) {
 
 @Composable
 fun TxBottomBar(current: String, onNavigate: (String) -> Unit) {
-    val moreRoutes = setOf("more", "sessions", "strategies", "calendar", "settings", "tags")
+    val moreRoutes = setOf("more", "sessions", "strategies", "calendar", "settings", "tags", "themes")
     val shape = RoundedCornerShape(26.dp)
     val t = rememberInfiniteTransition(label = "fab")
     val pulse by t.animateFloat(
@@ -231,7 +304,7 @@ fun TxBottomBar(current: String, onNavigate: (String) -> Unit) {
                 .fillMaxWidth()
                 .height(68.dp)
                 .clip(shape)
-                .background(Brush.verticalGradient(listOf(Color(0xEB1E1A0E), Color(0xF50A0A0C))))
+                .background(Brush.verticalGradient(listOf(Tx.NavA, Tx.NavB)))
                 .border(1.dp, Tx.Gold.copy(alpha = 0.45f), shape),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
@@ -250,12 +323,12 @@ fun TxBottomBar(current: String, onNavigate: (String) -> Unit) {
                 .size(58.dp)
                 .shadow(18.dp, CircleShape, ambientColor = Tx.Gold, spotColor = Tx.Gold)
                 .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(Color(0xFF3A3320), Color(0xFF0B0B0E))))
+                .background(if (Tx.Luxe) Brush.radialGradient(listOf(Tx.GoldHi, Tx.GoldDeep)) else Brush.radialGradient(listOf(Color(0xFF3A3320), Color(0xFF0B0B0E))))
                 .border(2.dp, Tx.GoldPale, CircleShape)
                 .clickable { onNavigate("add") },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Rounded.Add, "ثبت معامله جدید", tint = Tx.Gold, modifier = Modifier.size(30.dp))
+            Icon(Icons.Rounded.Add, "ثبت معامله جدید", tint = if (Tx.Luxe) Tx.Ink else Tx.Gold, modifier = Modifier.size(30.dp))
         }
     }
 }

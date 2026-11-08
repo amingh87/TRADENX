@@ -1,7 +1,6 @@
 package com.tradenex.app.data
 
-import kotlin.math.max
-import kotlin.math.min
+import com.tradenex.app.core.NativeCore
 
 data class Candle(val o: Double, val h: Double, val l: Double, val c: Double)
 
@@ -21,22 +20,16 @@ enum class Period(val label: String, val count: Int) {
 }
 
 object Analytics {
+    /** Computed by the Rust core when available (same maths in the Kotlin fallback). */
     fun candles(trades: List<Trade>, period: Period, startBalance: Double): List<Candle> {
-        val groups = trades.sortedBy { it.epochDay }.groupBy { period.bucket(it.epochDay) }
-        var equity = startBalance
-        val out = ArrayList<Candle>()
-        for ((_, list) in groups) {
-            val open = equity
-            var hi = equity
-            var lo = equity
-            for (t in list) {
-                equity += t.pnl
-                hi = max(hi, equity)
-                lo = min(lo, equity)
-            }
-            out.add(Candle(open, hi, lo, equity))
-        }
-        return out.takeLast(period.count)
+        val sorted = trades.sortedBy { it.epochDay }
+        val rows = NativeCore.candles(
+            DoubleArray(sorted.size) { sorted[it].pnl },
+            LongArray(sorted.size) { period.bucket(sorted[it].epochDay) },
+            startBalance,
+            period.count,
+        )
+        return rows.map { Candle(it[0], it[1], it[2], it[3]) }
     }
 
     fun dayPnl(trades: List<Trade>): Map<Long, Double> =

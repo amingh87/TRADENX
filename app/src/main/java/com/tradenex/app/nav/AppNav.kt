@@ -25,6 +25,7 @@ import com.tradenex.app.ui.screens.MoreScreen
 import com.tradenex.app.ui.screens.PerformanceScreen
 import com.tradenex.app.ui.screens.SessionsScreen
 import com.tradenex.app.ui.screens.SettingsScreen
+import com.tradenex.app.ui.screens.ThemesScreen
 import com.tradenex.app.ui.screens.StrategiesScreen
 import com.tradenex.app.ui.screens.TagsScreen
 
@@ -55,6 +56,7 @@ fun AppNav() {
                     composable("calendar") { CalendarScreen(nav) }
                     composable("tags") { TagsScreen(nav) }
                     composable("settings") { SettingsScreen(nav) }
+                    composable("themes") { ThemesScreen(nav) }
                 }
             }
             if (route != "add") {

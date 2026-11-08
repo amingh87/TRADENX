@@ -1,10 +1,11 @@
-//! TRADENEX native core: session maths and trade statistics.
-//! Exposed to Kotlin through JNI (see app/.../core/NativeCore.kt).
+//! TRADENEX native core: session maths, trade statistics, equity candles and the globe projector.
+//! Exposed to Kotlin through JNI (see `jni_api.rs` and app/.../core/NativeCore.kt).
 //! Every function has a pure-Kotlin fallback, so the app still runs without this library.
 
-use jni::objects::{JDoubleArray, JObject};
-use jni::sys::jint;
-use jni::JNIEnv;
+pub mod candles;
+pub mod globe;
+#[cfg(feature = "android")]
+mod jni_api;
 
 /// Session table in UTC minutes of the day: (start, end).
 /// Index: 0 Sydney, 1 Tokyo, 2 London, 3 New York.
@@ -95,54 +96,6 @@ pub fn stats(pnls: &[f64]) -> [f64; 4] {
         0.0
     };
     [net, wins as f64 / pnls.len() as f64, pf, dd]
-}
-
-#[no_mangle]
-pub extern "system" fn Java_com_tradenex_app_core_NativeCore_nSessionMask<'l>(
-    _env: JNIEnv<'l>,
-    _this: JObject<'l>,
-    minute: jint,
-) -> jint {
-    session_mask(minute)
-}
-
-#[no_mangle]
-pub extern "system" fn Java_com_tradenex_app_core_NativeCore_nOverlapMinutes<'l>(
-    _env: JNIEnv<'l>,
-    _this: JObject<'l>,
-    a: jint,
-    b: jint,
-) -> jint {
-    overlap_minutes(a.max(0) as usize, b.max(0) as usize)
-}
-
-#[no_mangle]
-pub extern "system" fn Java_com_tradenex_app_core_NativeCore_nMinutesToChange<'l>(
-    _env: JNIEnv<'l>,
-    _this: JObject<'l>,
-    minute: jint,
-    session: jint,
-) -> jint {
-    minutes_to_change(minute, session.max(0) as usize)
-}
-
-#[no_mangle]
-pub extern "system" fn Java_com_tradenex_app_core_NativeCore_nStats<'l>(
-    mut env: JNIEnv<'l>,
-    _this: JObject<'l>,
-    pnls: JDoubleArray<'l>,
-) -> JDoubleArray<'l> {
-    let len = env.get_array_length(&pnls).unwrap_or(0) as usize;
-    let mut buf = vec![0f64; len];
-    let _ = env.get_double_array_region(&pnls, 0, &mut buf);
-    let s = stats(&buf);
-    match env.new_double_array(4) {
-        Ok(out) => {
-            let _ = env.set_double_array_region(&out, 0, &s);
-            out
-        }
-        Err(_) => unsafe { JDoubleArray::from_raw(std::ptr::null_mut()) },
-    }
 }
 
 #[cfg(test)]

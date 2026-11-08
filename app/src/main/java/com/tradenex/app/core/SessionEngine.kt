@@ -6,7 +6,16 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.TimeZone
 
-data class SessionDef(val name: String, val startUtc: Int, val endUtc: Int, val color: Color)
+data class SessionDef(val name: String, val startUtc: Int, val endUtc: Int, val index: Int) {
+    /** Follows the active theme, so it changes live when the theme does. */
+    val color: Color
+        get() = when (index) {
+            0 -> Tx.SessSydney
+            1 -> Tx.SessTokyo
+            2 -> Tx.SessLondon
+            else -> Tx.SessNewYork
+        }
+}
 
 data class SessionState(
     val def: SessionDef,
@@ -20,10 +29,10 @@ data class OverlapInfo(val a: String, val b: String, val minutes: Int, val perce
 
 object SessionEngine {
     val defs = listOf(
-        SessionDef("Sydney", 1320, 420, Tx.Blue),
-        SessionDef("Tokyo", 0, 540, Tx.Purple),
-        SessionDef("London", 480, 1020, Tx.Gold),
-        SessionDef("New York", 780, 1320, Tx.Red),
+        SessionDef("Sydney", 1320, 420, 0),
+        SessionDef("Tokyo", 0, 540, 1),
+        SessionDef("London", 480, 1020, 2),
+        SessionDef("New York", 780, 1320, 3),
     )
 
     fun currentUtcMinute(): Int {
