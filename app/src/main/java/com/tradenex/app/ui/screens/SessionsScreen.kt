@@ -64,8 +64,8 @@ fun SessionsScreen(nav: NavController) {
         onBack = { nav.popBackStack() },
         trailing = {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                TxChip("کره زمین", settings.showGlobe, { AppState.settings = AppState.settings.copy(showGlobe = true) })
-                TxChip("نوار زمانی", !settings.showGlobe, { AppState.settings = AppState.settings.copy(showGlobe = false) })
+                TxChip("کره زمین", settings.showGlobe, { AppState.update { it.copy(showGlobe = true) } })
+                TxChip("نوار زمانی", !settings.showGlobe, { AppState.update { it.copy(showGlobe = false) } })
             }
         },
     ) {

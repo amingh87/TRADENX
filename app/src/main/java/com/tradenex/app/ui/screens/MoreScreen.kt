@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Settings
@@ -71,6 +72,7 @@ fun MoreScreen(nav: NavController) {
         MenuItem("# هشتگ‌ها", "برچسب‌گذاری معامله‌ها", Icons.Rounded.Tag, "tags", Tx.Purple),
         MenuItem("گزارش‌ها", "کندل، نقشه حرارتی", Icons.Rounded.BarChart, "perf", Tx.Gold),
         MenuItem("آموزش", "متن، عکس، ویدیو", Icons.Rounded.MenuBook, "edu", Tx.Green),
+        MenuItem("تم‌ها", "Default و GOLD", Icons.Rounded.Palette, "themes", Tx.Gold),
         MenuItem("تنظیمات", "همه جزئیات برنامه", Icons.Rounded.Settings, "settings", Tx.Muted),
         MenuItem("درباره", "نسخه و هسته", Icons.Rounded.Info, "about", Tx.Blue),
     )
@@ -103,6 +105,7 @@ fun MoreScreen(nav: NavController) {
                     row.forEach { m ->
                         MenuTile(m, Modifier.weight(1f)) { if (m.route == "about") about = true else nav.navigate(m.route) }
                     }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
         }
@@ -115,7 +118,7 @@ fun MoreScreen(nav: NavController) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Brush.verticalGradient(listOf(Color(0xFFFFD978), Tx.GoldDeep)))
+                            .background(Brush.verticalGradient(listOf(Tx.GoldHi, Tx.GoldDeep)))
                             .padding(horizontal = 24.dp, vertical = 10.dp),
                     ) { Text("ارتقا به نسخه حرفه‌ای", color = Tx.Ink, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp) }
                 }
@@ -127,8 +130,8 @@ fun MoreScreen(nav: NavController) {
     if (about) {
         AlertDialog(
             onDismissRequest = { about = false },
-            containerColor = Color(0xFF14141A),
-            title = { Text("TRADENEX 0.1.0", color = Tx.Text) },
+            containerColor = Tx.Surface,
+            title = { Text("TRADENEX 0.2.0", color = Tx.Text) },
             text = {
                 Text(
                     "دفترچه معاملات و آموزش فارکس. این برنامه سیگنال نمی‌دهد و معامله انجام نمی‌دهد.\nهسته محاسبات: " +

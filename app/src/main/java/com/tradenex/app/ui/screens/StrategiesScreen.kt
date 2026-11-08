@@ -171,7 +171,7 @@ private fun SwitchMini(on: Boolean, onToggle: () -> Unit) {
             .width(42.dp)
             .height(24.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (on) Color(0xFF14B888) else Color(0xFF4A4A52))
+            .background(if (on) Tx.Green else Color(0xFF4A4A52))
             .clickable(onClick = onToggle)
             .padding(3.dp),
         contentAlignment = if (on) Alignment.CenterEnd else Alignment.CenterStart,

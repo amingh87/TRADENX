@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
+import com.tradenex.app.core.SessionEngine
+import com.tradenex.app.ui.theme.GlobeStyle
 import com.tradenex.app.ui.theme.Tx
 import kotlin.math.PI
 import kotlin.math.asin
@@ -28,13 +30,15 @@ import kotlin.math.max
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-private class City(val name: String, val lat: Double, val lon: Double, val color: Color, val session: Int)
+private class City(val name: String, val lat: Double, val lon: Double, val session: Int) {
+    val color: Color get() = SessionEngine.defs[session].color
+}
 
 private val cities = listOf(
-    City("Sydney", -33.9, 151.2, Tx.Blue, 0),
-    City("Tokyo", 35.7, 139.7, Tx.Purple, 1),
-    City("London", 51.5, -0.1, Tx.Gold, 2),
-    City("New York", 40.7, -74.0, Tx.Red, 3),
+    City("Sydney", -33.9, 151.2, 0),
+    City("Tokyo", 35.7, 139.7, 1),
+    City("London", 51.5, -0.1, 2),
+    City("New York", 40.7, -74.0, 3),
 )
 private const val TEHRAN_LAT = 35.7
 private const val TEHRAN_LON = 51.4
@@ -93,6 +97,13 @@ private fun unit(lat: Double, lon: Double): DoubleArray {
  */
 @Composable
 fun SpinningGlobe(openMask: Int, utcMinute: Int, modifier: Modifier = Modifier, speed: Int = 1) {
+    if (Tx.Globe == GlobeStyle.GOLD) GoldGlobe(openMask, utcMinute, modifier, speed)
+    else OceanGlobe(openMask, utcMinute, modifier, speed)
+}
+
+/** The original blue ocean globe (Default theme). */
+@Composable
+fun OceanGlobe(openMask: Int, utcMinute: Int, modifier: Modifier = Modifier, speed: Int = 1) {
     val t = rememberInfiniteTransition(label = "globe")
     val spinMs = when (speed) {
         0 -> 90000

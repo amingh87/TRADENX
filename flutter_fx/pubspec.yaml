@@ -1,6 +1,6 @@
 name: tradenex_fx
-description: Dart/Flutter animation kit for TRADENEX (globe, glow numbers).
-version: 0.1.0
+description: Dart/Flutter animation kit for TRADENEX (globes, glow numbers, particles, themes).
+version: 0.2.0
 publish_to: none
 
 environment:
@@ -13,3 +13,5 @@ dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/world_dots.bin

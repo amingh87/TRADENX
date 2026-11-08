@@ -1,6 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+export 'fx_palette.dart';
+export 'fx_widgets.dart';
+export 'gold_globe_fx.dart';
+
 /// Spinning dotted globe with pulsing city markers.
 class GlobeFx extends StatefulWidget {
   const GlobeFx({super.key, this.openSessions = const {2}});
@@ -153,7 +157,7 @@ class _GlobePainter extends CustomPainter {
   bool shouldRepaint(covariant _GlobePainter old) => old.t != t || old.open != open;
 }
 
-/// Number that counts up to [value] with a glow.
+/// Number that counts up to [value] with a glow (pass a palette colour to follow the theme).
 class GlowNumber extends StatelessWidget {
   const GlowNumber({super.key, required this.value, this.suffix = '', this.color = const Color(0xFF2BE8A8)});
   final double value;
